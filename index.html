@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KabFeesPay — Kabale University</title>
+<style>
+  :root{
+    --green:#0b6b3a;
+    --green-dark:#074d29;
+    --gold:#c9a227;
+    --bg:#f4f7f5;
+    --card:#ffffff;
+    --text:#1f2a24;
+    --muted:#6b7a72;
+    --border:#e3e8e5;
+    --danger:#c0392b;
+    --ok:#1e8449;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif}
+  body{background:var(--bg);color:var(--text);min-height:100vh}
+
+  /* Header */
+  header{
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);position:sticky;top:0;z-index:50;
+  }
+  .logo{display:flex;align-items:center;gap:12px;cursor:pointer}
+  .logo-badge{
+    width:44px;height:44px;border-radius:50%;background:var(--gold);
+    display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--green-dark);
+    font-size:18px;
+  }
+  .logo h1{font-size:20px;letter-spacing:.5px}
+  .logo p{font-size:12px;opacity:.85}
+  nav{display:flex;gap:8px;align-items:center}
+  nav button{
+    background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);
+    padding:8px 14px;border-radius:6px;cursor:pointer;font-size:14px;transition:.2s;
+  }
+  nav button:hover{background:rgba(255,255,255,.15)}
+  nav button.active{background:var(--gold);color:var(--green-dark);border-color:var(--gold);font-weight:600}
+  .user-chip{
+    background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-size:13px;
+  }
+
+  /* Layout */
+  main{max-width:1150px;margin:28px auto;padding:0 20px}
+  .view{display:none;animation:fade .3s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Cards */
+  .card{
+    background:var(--card);border-radius:12px;padding:24px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:20px;border:1px solid var(--border);
+  }
+  .hero{
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:#fff;padding:40px 30px;border-radius:14px;text-align:center;margin-bottom:24px;
+  }
+  .hero h2{font-size:30px;margin-bottom:10px}
+  .hero p{opacity:.9;max-width:640px;margin:0 auto 18px}
+  .hero .btn{background:var(--gold);color:var(--green-dark);font-weight:600}
+  .hero .btn:hover{background:#d9b230}
+
+  /* Buttons */
+  .btn{
+    background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:8px;
+    cursor:pointer;font-size:14px;font-weight:500;transition:.2s;display:inline-block;
+  }
+  .btn:hover{background:var(--green-dark)}
+  .btn-gold{background:var(--gold);color:var(--green-dark)}
+  .btn-gold:hover{background:#d9b230}
+  .btn-outline{background:transparent;color:var(--green);border:1px solid var(--green)}
+  .btn-outline:hover{background:var(--green);color:#fff}
+  .btn-danger{background:var(--danger)}
+  .btn-danger:hover{background:#a93226}
+  .btn-sm{padding:6px 12px;font-size:13px}
+
+  /* Forms */
+  .form-group{margin-bottom:16px}
+  label{display:block;margin-bottom:6px;font-weight:500;font-size:14px;color:var(--text)}
+  input,select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;background:#fff;transition:.2s;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(11,107,58,.15)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.row{grid-template-columns:1fr}}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:20px}
+  .stat{
+    background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);
+    border-left:4px solid var(--green);
+  }
+  .stat h4{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .stat .val{font-size:26px;font-weight:700;color:var(--green-dark)}
+  .stat.gold{border-left-color:var(--gold)}
+  .stat.gold .val{color:#a8861c}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+  th{background:#f0f4f1;font-weight:600;color:var(--green-dark);font-size:13px;text-transform:uppercase;letter-spacing:.3px}
+  tr:hover{background:#fafcfb}
+  .badge{
+    display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;
+  }
+  .badge.ok{background:#d4edda;color:#155724}
+  .badge.pending{background:#fff3cd;color:#856404}
+
+  /* Fee cards */
+  .fee-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+  .fee-card{
+    background:#fff;border:2px solid var(--border);border-radius:10px;padding:18px;
+    cursor:pointer;transition:.2s;position:relative;
+  }
+  .fee-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .fee-card.selected{border-color:var(--green);background:#f0f8f3}
+  .fee-card.selected::after{
+    content:"✓";position:absolute;top:10px;right:12px;background:var(--green);
+    color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;
+  }
+  .fee-card h4{color:var(--green-dark);margin-bottom:6px}
+  .fee-card .amount{font-size:22px;font-weight:700;color:var(--green);margin-top:8px}
+  .fee-card p{font-size:12px;color:var(--muted)}
+
+  /* Payment method */
+  .method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .method{
+    border:2px solid var(--border);border-radius:10px;padding:18px;text-align:center;
+    cursor:pointer;transition:.2s;background:#fff;
+  }
+  .method:hover{border-color:var(--green)}
+  .method.selected{border-color:var(--green);background:#f0f8f3}
+  .method .icon{font-size:32px;margin-bottom:6px}
+  .method h5{color:var(--green-dark);font-size:14px}
+  .method-details{
+    background:#f0f8f3;border:1px dashed var(--green);border-radius:8px;padding:14px;margin:12px 0;
+  }
+  .method-details strong{color:var(--green-dark)}
+
+  /* Receipt */
+  .receipt{
+    background:#fff;border:2px solid var(--green);border-radius:12px;padding:30px;max-width:600px;margin:0 auto;
+  }
+  .receipt-header{text-align:center;border-bottom:2px dashed var(--border);padding-bottom:16px;margin-bottom:16px}
+  .receipt-header h2{color:var(--green-dark);font-size:22px}
+  .receipt-header p{color:var(--muted);font-size:13px}
+  .receipt-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}
+  .receipt-row:last-child{border:none}
+  .receipt-row .lbl{color:var(--muted);font-size:13px}
+  .receipt-row .val{font-weight:600;color:var(--text)}
+  .receipt-total{
+    background:var(--green);color:#fff;padding:14px;border-radius:8px;margin-top:14px;
+    display:flex;justify-content:space-between;font-size:18px;font-weight:700;
+  }
+  .receipt-footer{text-align:center;margin-top:20px;padding-top:16px;border-top:2px dashed var(--border);color:var(--muted);font-size:12px}
+  .receipt-actions{display:flex;gap:10px;justify-content:center;margin-top:20px}
+
+  /* Alerts */
+  .alert{
+    padding:12px 16px;border-radius:8px;margin-bottom:14px;font-size:14px;
+  }
+  .alert-error{background:#fdecea;color:var(--danger);border:1px solid #f5c6cb}
+  .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+  .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+
+  /* Misc */
+  .section-title{font-size:22px;color:var(--green-dark);margin-bottom:14px;font-weight:600}
+  .muted{color:var(--muted);font-size:13px}
+  .text-center{text-align:center}
+  .mt-10{margin-top:10px}
+  .mt-20{margin-top:20px}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+
+  /* Print */
+  @media print{
+    header,nav,.receipt-actions,.view:not(.active){display:none!important}
+    body{background:#fff}
+    .receipt{border:none;box-shadow:none;max-width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="navigate('home')">
+    <div class="logo-badge">KU</div>
+    <div>
+      <h1>KabFeesPay</h1>
+      <p>Kabale University • Student Fee Portal</p>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <h2>Pay Your Fees. Anytime. Anywhere.</h2>
+      <p>Welcome to KabFeesPay — the official online fee payment portal of Kabale University. Secure, fast, and convenient payments via Bank, Airtel Money, or MTN Mobile Money.</p>
+      <button class="btn btn-gold" onclick="navigate('login')">Student Login</button>
+      <button class="btn btn-outline" style="color:#fff;border-color:#fff" onclick="navigate('register')">Create Account</button>
+    </div>
+
+    <div class="grid">
+      <div class="stat"><h4>Fee Categories</h4><div class="val">6</div><p class="muted">Functional, Tuition, Retake, UNCHE, Graduation, Late Reg.</p></div>
+      <div class="stat gold"><h4>Payment Channels</h4><div class="val">3</div><p class="muted">Bank Transfer, Airtel Money, MTN MoMo</p></div>
+      <div class="stat"><h4>Receipts</h4><div class="val">Instant</div><p class="muted">Printable digital receipts after every payment</p></div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h3 class="section-title">Admin Dashboard</h3>
+          <p class="muted">Overview of all transactions across the university.</p>
+        </div>
+        <button class="btn btn-outline" onclick="navigate('admin')">Open Admin Panel →</button>
+      </div>
+      <div id="home-stats" class="grid mt-20"></div>
+      <h4 style="margin-top:10px;color:var(--green-dark)">Recent Payments</h4>
+      <div id="home-recent"></div>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="view-login" class="view">
+    <div class="card" style="max-width:440px;margin:40px auto">
+      <h3 class="section-title text-center">Student / Admin Login</h3>
+      <div id="login-alert"></div>
+      <form onsubmit="doLogin(event)">
+        <div class="form-group">
+          <label>Student / Admin Number</label>
+          <input type="text" id="login-id" required placeholder="e.g. 2024/STU/001 or admin"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-pw" required placeholder="Enter password"/>
+        </div>
+        <button type="submit" class="btn" style="width:100%">Sign In</button>
+        <p class="text-center mt-20 muted">No account? <a href="#" onclick="navigate('register');return false" style="color:var(--green)">Create one</a></p>
+        <p class="text-center mt-10 muted">Admin demo: <code>admin</code> / <code>admin123</code></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- REGISTER -->
+  <section id="view-register" class="view">
+    <div class="card" style="max-width:560px;margin:30px auto">
+      <h3 class="section-title text-center">Create Student Account</h3>
+      <div id="reg-alert"></div>
+      <form onsubmit="doRegister(event)">
+        <div class="row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="reg-name" required/>
+          </div>
+          <div class="form-group">
+            <label>Student Number</label>
+            <input type="text" id="reg-id" required placeholder="2024/STU/001"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" required/>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" id="reg-phone" required placeholder="07XXXXXXXX"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Programme / Course</label>
+          <input type="text" id="reg-course" required placeholder="e.g. BSc. Computer Science"/>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="reg-pw" required minlength="4"/>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="reg-pw2" required minlength="4"/>
+          </div>
+        </div>
+        <button type="submit" class="btn" style="width:100%">Create Account</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- STUDENT DASHBOARD -->
+  <section id="view-dashboard" class="view">
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h3 class="section-title">Welcome, <span id="dash-name"></span></h3>
+          <p class="muted">Student No: <strong id="dash-id"></strong> • <span id="dash-course"></span></p>
+        </div>
+        <button class="btn btn-gold" onclick="navigate('pay')">+ Make Payment</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat"><h4>Total Paid</h4><div class="val" id="dash-total">UGX 0</div></div>
+      <div class="stat gold"><h4>Transactions</h4><div class="val" id="dash-count">0</div></div>
+      <div class="stat"><h4>Last Payment</h4><div class="val" id="dash-last" style="font-size:16px">—</div></div>
+    </div>
+
+    <div class="card">
+      <h4 class="section-title">My Payment History</h4>
+      <div id="dash-history"></div>
+    </div>
+  </section>
+
+  <!-- PAYMENT -->
+  <section id="view-pay" class="view">
+    <div class="card">
+      <h3 class="section-title">Make a Payment</h3>
+      <p class="muted">Step 1: Select the fee category you wish to pay.</p>
+
+      <div id="fee-grid" class="fee-grid mt-20"></div>
+
+      <div id="pay-step2" style="display:none">
+        <hr style="margin:20px 0;border:none;border-top:1px solid var(--border)"/>
+        <h4 class="section-title">Step 2: Choose Payment Method</h4>
+        <div class="method-grid">
+          <div class="method" data-method="bank" onclick="selectMethod('bank')">
+            <div class="icon">🏦</div><h5>Bank Transfer</h5>
+          </div>
+          <div class="method" data-method="airtel" onclick="selectMethod('airtel')">
+            <div class="icon">📱</div><h5>Airtel Money</h5>
+          </div>
+          <div class="method" data-method="mtn" onclick="selectMethod('mtn')">
+            <div class="icon">📲</div><h5>MTN MoMo</h5>
+          </div>
+        </div>
+        <div id="method-details"></div>
+
+        <div id="pay-step3" style="display:none">
+          <hr style="margin:20px 0;border:none;border-top:1px solid var(--border)"/>
+          <h4 class="section-title">Step 3: Confirm & Pay</h4>
+          <div id="pay-summary" class="card" style="background:#f0f8f3;border:1px dashed var(--green)"></div>
+          <button class="btn btn-gold" style="width:100%;padding:14px;font-size:16px" onclick="confirmPayment()">Confirm & Complete Payment</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECEIPT -->
+  <section id="view-receipt" class="view">
+    <div id="receipt-container"></div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="view-admin" class="view">
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h3 class="section-title">Admin Dashboard</h3>
+          <p class="muted">Manage all student payments and accounts.</p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat"><h4>Total Students</h4><div class="val" id="adm-students">0</div></div>
+      <div class="stat gold"><h4>Total Transactions</h4><div class="val" id="adm-tx">0</div></div>
+      <div class="stat"><h4>Total Collected</h4><div class="val" id="adm-total">UGX 0</div></div>
+      <div class="stat gold"><h4>Today's Revenue</h4><div class="val" id="adm-today">UGX 0</div></div>
+    </div>
+
+    <div class="card">
+      <h4 class="section-title">All Transactions</h4>
+      <input type="text" id="adm-search" placeholder="Search by student name or number..." oninput="renderAdmin()" style="margin-bottom:12px"/>
+      <div id="adm-table"></div>
+    </div>
+
+    <div class="card">
+      <h4 class="section-title">Registered Students</h4>
+      <div id="adm-students-table"></div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ======================= DATA LAYER ======================= */
+const FEES = [
+  {code:'FUN', name:'Functional Fee', amount:50000, desc:'University functional & activity fee'},
+  {code:'TUI', name:'Tuition Fee', amount:1500000, desc:'Semester tuition charges'},
+  {code:'RET', name:'Retake Fee', amount:100000, desc:'Per-unit retake examination fee'},
+  {code:'UNC', name:'UNCHE Fee', amount:50000, desc:'National Council for Higher Education fee'},
+  {code:'GRA', name:'Graduation Fee', amount:150000, desc:'Graduation ceremony & certificate'},
+  {code:'LTR', name:'Late Registration Fee', amount:75000, desc:'Penalty for late course registration'},
+];
+
+const METHODS = {
+  bank: {
+    name:'Bank Transfer',
+    instructions:'Please transfer the amount to the Kabale University account below, then enter your transaction reference.',
+    fields:[
+      {label:'Bank Name', value:'Stanbic Bank Uganda'},
+      {label:'Account Name', value:'Kabale University'},
+      {label:'Account Number', value:'9030 0123 4567'},
+      {label:'Branch', value:'Kabale Branch'},
+    ],
+    input:{label:'Bank Transaction Reference', placeholder:'e.g. TRF-2026-8831'}
+  },
+  airtel:{
+    name:'Airtel Money',
+    instructions:'Dial *185# → Select "Payments" → "Merchant" → Enter the merchant number below, then input the amount and confirm with your PIN.',
+    fields:[
+      {label:'Merchant Name', value:'KABUFEESPAY'},
+      {label:'Merchant Code', value:'*185*99*123456#'},
+    ],
+    input:{label:'Airtel Transaction ID', placeholder:'e.g. AM2026100512345'}
+  },
+  mtn:{
+    name:'MTN Mobile Money',
+    instructions:'Dial *165# → Select "Payments" → "Make Payment" → Enter the merchant number below, then input the amount and confirm with your PIN.',
+    fields:[
+      {label:'Merchant Name', value:'KABUFEESPAY'},
+      {label:'Merchant Code', value:'*165*3*123456#'},
+    ],
+    input:{label:'MTN MoMo Transaction ID', placeholder:'e.g. MP2026100512345'}
+  }
+};
+
+function loadDB(){
+  const db = JSON.parse(localStorage.getItem('kabfeespay_db')||'{}');
+  if(!db.users){
+    db.users = [{
+      id:'admin', name:'System Administrator', email:'admin@ku.ac.ug',
+      phone:'0700000000', course:'Administration', password:'admin123', role:'admin'
+    }];
+  }
+  if(!db.payments) db.payments = [];
+  return db;
+}
+function saveDB(db){ localStorage.setItem('kabfeespay_db', JSON.stringify(db)); }
+
+let db = loadDB();
+let session = JSON.parse(sessionStorage.getItem('kabfeespay_session')||'null');
+let selectedFee = null;
+let selectedMethod = null;
+let methodRef = '';
+
+/* ======================= NAVIGATION ======================= */
+function navigate(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  renderNav();
+  if(view==='home') renderHome();
+  if(view==='dashboard') renderDashboard();
+  if(view==='pay') renderPay();
+  if(view==='admin') renderAdmin();
+  window.scrollTo(0,0);
+}
+
+function renderNav(){
+  const nav = document.getElementById('nav');
+  if(session){
+    const isAdmin = session.role==='admin';
+    nav.innerHTML = `
+      <span class="user-chip">👤 ${session.name}</span>
+      <button class="${currentView()==='home'?'active':''}" onclick="navigate('home')">Home</button>
+      ${isAdmin?'':'<button class="'+(currentView()==='dashboard'?'active':'')+'" onclick="navigate(\'dashboard\')">My Account</button>'}
+      ${isAdmin?'':'<button class="'+(currentView()==='pay'?'active':'')+'" onclick="navigate(\'pay\')">Pay Fees</button>'}
+      ${isAdmin?'<button class="'+(currentView()==='admin'?'active':'')+'" onclick="navigate(\'admin\')">Admin Panel</button>':''}
+      <button onclick="logout()">Logout</button>
+    `;
+  } else {
+    nav.innerHTML = `
+      <button class="${currentView()==='home'?'active':''}" onclick="navigate('home')">Home</button>
+      <button class="${currentView()==='login'?'active':''}" onclick="navigate('login')">Login</button>
+      <button class="${currentView()==='register'?'active':''}" onclick="navigate('register')">Register</button>
+    `;
+  }
+}
+function currentView(){
+  const active = document.querySelector('.view.active');
+  return active ? active.id.replace('view-','') : 'home';
+}
+
+/* ======================= AUTH ======================= */
+function showAlert(id, type, msg){
+  document.getElementById(id).innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+function doLogin(e){
+  e.preventDefault();
+  const id = document.getElementById('login-id').value.trim().toLowerCase();
+  const pw = document.getElementById('login-pw').value;
+  db = loadDB();
+  const user = db.users.find(u=>u.id.toLowerCase()===id && u.password===pw);
+  if(!user){
+    showAlert('login-alert','error','Invalid credentials. Please try again.');
+    return;
+  }
+  session = user;
+  sessionStorage.setItem('kabfeespay_session', JSON.stringify(user));
+  navigate(user.role==='admin'?'admin':'dashboard');
+}
+
+function doRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('reg-name').value.trim();
+  const id = document.getElementById('reg-id').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const course = document.getElementById('reg-course').value.trim();
+  const pw = document.getElementById('reg-pw').value;
+  const pw2 = document.getElementById('reg-pw2').value;
+
+  if(pw!==pw2){ showAlert('reg-alert','error','Passwords do not match.'); return; }
+  db = loadDB();
+  if(db.users.find(u=>u.id.toLowerCase()===id.toLowerCase())){
+    showAlert('reg-alert','error','A user with this Student Number already exists.');
+    return;
+  }
+  const user = {id, name, email, phone, course, password:pw, role:'student'};
+  db.users.push(user);
+  saveDB(db);
+  session = user;
+  sessionStorage.setItem('kabfeespay_session', JSON.stringify(user));
+  navigate('dashboard');
+}
+
+function logout(){
+  session = null;
+  sessionStorage.removeItem('kabfeespay_session');
+  navigate('home');
+}
+
+/* ======================= HOME ======================= */
+function renderHome(){
+  db = loadDB();
+  const students = db.users.filter(u=>u.role==='student').length;
+  const total = db.payments.reduce((s,p)=>s+p.amount,0);
+  const tx = db.payments.length;
+
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat"><h4>Registered Students</h4><div class="val">${students}</div></div>
+    <div class="stat gold"><h4>Total Transactions</h4><div class="val">${tx}</div></div>
+    <div class="stat"><h4>Total Collected</h4><div class="val">${fmt(total)}</div></div>
+  `;
+
+  const recent = db.payments.slice(-5).reverse();
+  if(recent.length===0){
+    document.getElementById('home-recent').innerHTML = '<p class="muted">No payments yet.</p>';
+  } else {
+    document.getElementById('home-recent').innerHTML = `
+      <table>
+        <tr><th>Receipt</th><th>Student</th><th>Fee Type</th><th>Amount</th><th>Date</th></tr>
+        ${recent.map(p=>`
+          <tr>
+            <td><code>${p.receiptNo}</code></td>
+            <td>${p.studentName}</td>
+            <td>${p.feeName}</td>
+            <td><strong>${fmt(p.amount)}</strong></td>
+            <td>${p.date}</td>
+          </tr>`).join('')}
+      </table>`;
+  }
+}
+
+/* ======================= STUDENT DASHBOARD ======================= */
+function renderDashboard(){
+  if(!session || session.role!=='student'){ navigate('login'); return; }
+  db = loadDB();
+  document.getElementById('dash-name').textContent = session.name;
+  document.getElementById('dash-id').textContent = session.id;
+  document.getElementById('dash-course').textContent = session.course;
+
+  const my = db.payments.filter(p=>p.studentId===session.id);
+  const total = my.reduce((s,p)=>s+p.amount,0);
+  document.getElementById('dash-total').textContent = fmt(total);
+  document.getElementById('dash-count').textContent = my.length;
+  document.getElementById('dash-last').textContent = my.length? my[my.length-1].date : '—';
+
+  if(my.length===0){
+    document.getElementById('dash-history').innerHTML = '<p class="muted">No payments yet. Click "Make Payment" to get started.</p>';
+  } else {
+    document.getElementById('dash-history').innerHTML = `
+      <table>
+        <tr><th>Receipt</th><th>Fee Type</th><th>Method</th><th>Amount</th><th>Date</th><th>Action</th></tr>
+        ${my.slice().reverse().map(p=>`
+          <tr>
+            <td><code>${p.receiptNo}</code></td>
+            <td>${p.feeName}</td>
+            <td>${p.methodName}</td>
+            <td><strong>${fmt(p.amount)}</strong></td>
+            <td>${p.date}</td>
+            <td><button class="btn btn-sm btn-outline" onclick="viewReceipt('${p.id}')">View</button></td>
+          </tr>`).join('')}
+      </table>`;
+  }
+}
+
+/* ======================= PAYMENT ======================= */
+function renderPay(){
+  if(!session || session.role!=='student'){ navigate('login'); return; }
+  selectedFee = null; selectedMethod = null; methodRef='';
+  document.getElementById('pay-step2').style.display='none';
+  document.getElementById('pay-step3').style.display='none';
+  document.getElementById('method-details').innerHTML='';
+  document.querySelectorAll('.method').forEach(m=>m.classList.remove('selected'));
+
+  document.getElementById('fee-grid').innerHTML = FEES.map(f=>`
+    <div class="fee-card" data-code="${f.code}" onclick="selectFee('${f.code}')">
+      <h4>${f.name}</h4>
+      <p>${f.desc}</p>
+      <div class="amount">${fmt(f.amount)}</div>
+    </div>
+  `).join('');
+}
+
+function selectFee(code){
+  selectedFee = FEES.find(f=>f.code===code);
+  document.querySelectorAll('.fee-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector(`.fee-card[data-code="${code}"]`).classList.add('selected');
+  document.getElementById('pay-step2').style.display='block';
+  document.getElementById('pay-step3').style.display='none';
+  selectedMethod = null; methodRef='';
+  document.querySelectorAll('.method').forEach(m=>m.classList.remove('selected'));
+  document.getElementById('method-details').innerHTML='';
+}
+
+function selectMethod(m){
+  selectedMethod = m;
+  document.querySelectorAll('.method').forEach(el=>el.classList.remove('selected'));
+  document.querySelector(`.method[data-method="${m}"]`).classList.add('selected');
+
+  const info = METHODS[m];
+  document.getElementById('method-details').innerHTML = `
+    <div class="method-details">
+      <p style="margin-bottom:10px"><strong>${info.instructions}</strong></p>
+      ${info.fields.map(f=>`<div class="receipt-row"><span class="lbl">${f.label}</span><span class="val">${f.value}</span></div>`).join('')}
+      <div class="form-group" style="margin-top:14px;margin-bottom:0">
+        <label>${info.input.label}</label>
+        <input type="text" id="method-ref" placeholder="${info.input.placeholder}" oninput="methodRef=this.value" required/>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pay-summary').innerHTML = `
+    <div class="receipt-row"><span class="lbl">Student</span><span class="val">${session.name} (${session.id})</span></div>
+    <div class="receipt-row"><span class="lbl">Fee Category</span><span class="val">${selectedFee.name}</span></div>
+    <div class="receipt-row"><span class="lbl">Payment Method</span><span class="val">${info.name}</span></div>
+    <div class="receipt-row"><span class="lbl">Amount</span><span class="val" style="color:var(--green);font-size:18px">${fmt(selectedFee.amount)}</span></div>
+  `;
+  document.getElementById('pay-step3').style.display='block';
+}
+
+function confirmPayment(){
+  if(!methodRef.trim()){
+    alert('Please enter your transaction reference.');
+    return;
+  }
+  db = loadDB();
+  const payment = {
+    id: 'P'+Date.now(),
+    receiptNo: 'KFP-'+Date.now().toString().slice(-8),
+    studentId: session.id,
+    studentName: session.name,
+    studentCourse: session.course,
+    feeCode: selectedFee.code,
+    feeName: selectedFee.name,
+    amount: selectedFee.amount,
+    method: selectedMethod,
+    methodName: METHODS[selectedMethod].name,
+    reference: methodRef.trim(),
+    date: new Date().toLocaleString('en-GB'),
+    status:'Paid'
+  };
+  db.payments.push(payment);
+  saveDB(db);
+  viewReceipt(payment.id);
+}
+
+/* ======================= RECEIPT ======================= */
+function viewReceipt(pid){
+  db = loadDB();
+  const p = db.payments.find(x=>x.id===pid);
+  if(!p){ alert('Receipt not found'); return; }
+
+  document.getElementById('receipt-container').innerHTML = `
+    <div class="receipt">
+      <div class="receipt-header">
+        <div style="font-size:28px">🎓</div>
+        <h2>KABALE UNIVERSITY</h2>
+        <p>Official Fee Payment Receipt • KabFeesPay</p>
+        <p style="margin-top:6px"><strong>Receipt No: ${p.receiptNo}</strong></p>
+      </div>
+      <div class="receipt-row"><span class="lbl">Student Name</span><span class="val">${p.studentName}</span></div>
+      <div class="receipt-row"><span class="lbl">Student Number</span><span class="val">${p.studentId}</span></div>
+      <div class="receipt-row"><span class="lbl">Programme</span><span class="val">${p.studentCourse}</span></div>
+      <div class="receipt-row"><span class="lbl">Fee Category</span><span class="val">${p.feeName}</span></div>
+      <div class="receipt-row"><span class="lbl">Payment Method</span><span class="val">${p.methodName}</span></div>
+      <div class="receipt-row"><span class="lbl">Transaction Reference</span><span class="val"><code>${p.reference}</code></span></div>
+      <div class="receipt-row"><span class="lbl">Date & Time</span><span class="val">${p.date}</span></div>
+      <div class="receipt-row"><span class="lbl">Status</span><span class="val"><span class="badge ok">${p.status}</span></span></div>
+      <div class="receipt-total">
+        <span>TOTAL PAID</span><span>${fmt(p.amount)}</span>
+      </div>
+      <div class="receipt-footer">
+        This is a computer-generated receipt and is valid without a signature.<br/>
+        Kabale University • P.O. Box 317, Kabale, Uganda • www.kiu.ac.u
+        <div style="margin-top:10px">
+          <button class="btn btn-sm" onclick="window.print()">🖨 Print Receipt</button>
+          <button class="btn btn-sm btn-outline" onclick="navigate(session.role==='admin'?'admin':'dashboard')">← Back</button>
+        </div>
+      </div>
+    </div>
+  `;
+  navigate('receipt');
+}
+
+/* ======================= ADMIN ======================= */
+function renderAdmin(){
+  if(!session || session.role!=='admin'){ navigate('login'); return; }
+  db = loadDB();
+  const students = db.users.filter(u=>u.role==='student');
+  const payments = db.payments;
+  const total = payments.reduce((s,p)=>s+p.amount,0);
+  const today = new Date().toLocaleDateString('en-GB');
+  const todayTotal = payments.filter(p=>p.date.startsWith(today)).reduce((s,p)=>s+p.amount,0);
+
+  document.getElementById('adm-students').textContent = students.length;
+  document.getElementById('adm-tx').textContent = payments.length;
+  document.getElementById('adm-total').textContent = fmt(total);
+  document.getElementById('adm-today').textContent = fmt(todayTotal);
+
+  const search = (document.getElementById('adm-search')?.value||'').toLowerCase();
+  const filtered = payments.filter(p=>
+    p.studentName.toLowerCase().includes(search) ||
+    p.studentId.toLowerCase().includes(search) ||
+    p.receiptNo.toLowerCase().includes(search)
+  ).slice().reverse();
+
+  if(filtered.length===0){
+    document.getElementById('adm-table').innerHTML = '<p class="muted">No transactions found.</p>';
+  } else {
+    document.getElementById('adm-table').innerHTML = `
+      <table>
+        <tr><th>Receipt</th><th>Student</th><th>Fee</th><th>Method</th><th>Reference</th><th>Amount</th><th>Date</th><th></th></tr>
+        ${filtered.map(p=>`
+          <tr>
+            <td><code>${p.receiptNo}</code></td>
+            <td>${p.studentName}<br/><span class="muted" style="font-size:12px">${p.studentId}</span></td>
+            <td>${p.feeName}</td>
+            <td>${p.methodName}</td>
+            <td><code style="font-size:12px">${p.reference}</code></td>
+            <td><strong>${fmt(p.amount)}</strong></td>
+            <td>${p.date}</td>
+            <td><button class="btn btn-sm btn-outline" onclick="viewReceipt('${p.id}')">Receipt</button></td>
+          </tr>`).join('')}
+      </table>`;
+  }
+
+  document.getElementById('adm-students-table').innerHTML = students.length===0
+    ? '<p class="muted">No students registered yet.</p>'
+    : `<table>
+        <tr><th>Student No</th><th>Name</th><th>Email</th><th>Phone</th><th>Programme</th><th>Total Paid</th></tr>
+        ${students.map(s=>{
+          const paid = payments.filter(p=>p.studentId===s.id).reduce((a,b)=>a+b.amount,0);
+          return `<tr>
+            <td><code>${s.id}</code></td>
+            <td>${s.name}</td>
+            <td>${s.email}</td>
+            <td>${s.phone}</td>
+            <td>${s.course}</td>
+            <td><strong>${fmt(paid)}</strong></td>
+          </tr>`;
+        }).join('')}
+      </table>`;
+}
+
+function exportCSV(){
+  db = loadDB();
+  if(db.payments.length===0){ alert('No transactions to export.'); return; }
+  const rows = [['Receipt','StudentID','StudentName','Course','Fee','Method','Reference','Amount','Date']];
+  db.payments.forEach(p=>rows.push([p.receiptNo,p.studentId,p.studentName,p.studentCourse,p.feeName,p.methodName,p.reference,p.amount,p.date]));
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kabfeespay_transactions_'+Date.now()+'.csv';
+  a.click();
+}
+
+/* ======================= UTIL ======================= */
+function fmt(n){ return 'UGX '+(n||0).toLocaleString('en-US'); }
+
+/* ======================= INIT ======================= */
+renderNav();
+renderHome();
+if(session){
+  navigate(session.role==='admin'?'admin':'dashboard');
+}
+</script>
+</body>
+</html>
